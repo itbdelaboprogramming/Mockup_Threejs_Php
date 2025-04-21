@@ -1,0 +1,435 @@
+@import url("https://fonts.googleapis.com/css?family=Ubuntu:wght@100;200;300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+/*  Color (from previous smart presentation project) */
+:root {
+  --primary-color-main: #e6f5f8;
+
+  --primary-color-25: #d4f2f4;
+  --primary-color-50: #74e7d4;
+  --primary-color-100: #189ab4;
+  --primary-color-200: #04445f;
+
+  --secondary-color-25: #345d7d;
+  --secondary-color-50: #725b78;
+  --secondary-color-100: #c66e87;
+  --secondary-color-200: #ff7582;
+
+  --background-color-25: #f2f4f7;
+  --background-color-50: #98a2b3;
+  --background-color-100: #475467;
+  --background-color-200: #344054;
+
+  --text-color-25: #1d2538;
+  --text-color-50: #475b74;
+  --text-color-100: #7c8da5;
+  --text-color-200: #e0e1dc;
+
+  --text-color-primary-color-200: #04445f;
+  --text-color-background-color-200: #344054;
+
+  --background-header: #f2f4f7;
+  --text-color-database-data: #04445f;
+  --background-database-data-select: #d4f2f4;
+
+  --onhover-color: #00000040;
+}
+
+.dark-theme {
+  --primary-color-main: #1d2538;
+
+  --primary-color-25: #d4f2f4;
+  --primary-color-50: #74e7d4;
+  --primary-color-100: #189ab4;
+  --primary-color-200: #04445f;
+
+  --secondary-color-25: #345d7d;
+  --secondary-color-50: #725b78;
+  --secondary-color-100: #c66e87;
+  --secondary-color-200: #ff7582;
+
+  --background-color-25: #f2f4f7;
+  --background-color-50: #98a2b3;
+  --background-color-100: #475467;
+  --background-color-200: #344054;
+
+  --text-color-25: #1d2538;
+  --text-color-50: #475b74;
+  --text-color-100: #7c8da5;
+  --text-color-200: #e0e1dc;
+
+  --text-color-primary-color-200: #04445f;
+  --text-color-background-color-200: #344054;
+
+  --background-header: #d4f2f4;
+  --text-color-database-data: #74e7d4;
+  --background-database-data-select: #7c8da5;
+
+  --onhover-color: rgba(24, 154, 180, 0.75);
+}
+
+/* ----------------------- Catalog ----------------------- */
+
+body.catalog {
+  overflow: auto;
+  background-color: #222;
+  margin: 0;
+}
+
+h1.catalog-title {
+  text-align: center;
+  font-family: Ubuntu;
+  margin-top: 35px;
+  margin-bottom: 0px;
+  color: var(--primary-color-25);
+}
+
+.catalog-container {
+  display: grid;
+  /* flex-wrap: wrap;
+  justify-content: left; */
+  grid-template-columns: repeat(4, 1fr);
+  padding: 35px;
+  gap: 25px;
+}
+
+.model-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0px;
+  height: 260px;
+  text-align: center;
+  background-color: var(--primary-color-25);
+  transition: box-shadow 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; */
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.model-card:hover {
+  box-shadow: 0 4px 8px rgba(204, 204, 204, 0.3);
+}
+
+.model-card img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.model-card h3 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  margin: 0;
+  padding: 10px;
+  font-size: 1.3em;
+  padding: 5px;
+  font-family: Ubuntu;
+  color: var(--primary-color-200);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s linear 0s;
+}
+
+.model-card:hover h3 {
+  opacity: 1;
+  /* visibility: hidden; */
+  transition: opacity 0.3s ease, linear 0.3s;
+  font-size: 1.7em;
+  font-weight: bold;
+  /* color: var(--primary-color-25); */
+}
+
+.model-card:hover img {
+  opacity: 0.5;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.add-model-button {
+  display: inline-block;
+  position: absolute;
+  top: 35px;
+  right: 35px;
+  padding: 0px 10px;
+  font-family: Ubuntu;
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 2em;
+  transition: background-color 0.3s ease;
+}
+
+.add-model-button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
+/* ----------------------- Modal ----------------------- */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 25px 40px;
+  border-radius: 8px;
+  border: var(--secondary-color-200) solid 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 60%;
+  max-height: 80vh;
+  height: 55vh;
+  overflow-y: auto;
+  position: relative;
+  font-family: Ubuntu;
+}
+
+.modal-content h1 {
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-close-btn:hover {
+  color: #222;
+}
+
+body.modal-open .catalog-container,
+body.modal-open h1.catalog-title,
+body.modal-open .add-model-button {
+  transition: filter 0.3s ease-out;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--primary-color-200);
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+/* .form-actions {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+} */
+
+.form-actions button {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.form-actions button:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* ----------------------- Viewer ----------------------- */
+
+body.viewer {
+  margin: 0;
+  overflow: hidden;
+  background-color: #111;
+}
+
+canvas {
+  display: block;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.back-button button {
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  border: 1px solid #fff;
+  padding: 8px 15px;
+  margin: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.back-button button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
+.rotate-button {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.rotate-button button {
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  border: 1px solid #fff;
+  padding: 8px 15px;
+  margin: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.rotate-button button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
+.light-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: var(--primary-color-25);
+  padding: 10px;
+  width: 250px;
+  border-radius: 5px;
+  color: var(--text-color-database-data);
+  font-family: Ubuntu;
+  font-size: 15px;
+  z-index: 10;
+}
+
+.light-controls fieldset div {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.light-controls label {
+  display: inline-block;
+  width: 20px;
+  margin-right: 10px;
+  font-size: 15px;
+}
+
+.light-controls input[type="range"] {
+  flex-grow: 1;
+  margin-right: 10px;
+  cursor: pointer;
+  vertical-align: middle;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+}
+
+.light-controls .slider-value {
+  display: inline-block;
+  min-width: 25px;
+  text-align: right;
+  padding: 1px 3px;
+  font-size: 15px;
+}
+
+.light-controls #lightPosDisplay {
+  margin-left: 10px;
+}
+
+.light-controls input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: var(--background-color-25);
+  border-radius: 4px;
+  border: 1px solid var(--primary-color-200);
+}
+
+.light-controls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--secondary-color-50);
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--primary-color-50);
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+/* ----------------------- Media Queries ----------------------- */
+
+@media (max-width: 900px) {
+  .catalog-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .model-card {
+    height: 200px;
+  }
+}
