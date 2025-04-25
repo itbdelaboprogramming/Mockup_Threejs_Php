@@ -24,7 +24,13 @@ try {
     $sampleModels = [
         // ['Microhydro System 2', 'Microhydro System 2', '../assets/thumbnails/Micro_2.png', null],
         ['Microhydro System', 'Microhydro_System', '../assets/thumbnails/Micro.png', null],
-        ['MSD700', 'MSD700_ブレードモデル_MCLA15A', '../assets/thumbnails/MSD700.png', null]
+        ['MSD700', 'MSD700_ブレードモデル_MCLA15A', '../assets/thumbnails/MSD700.png', null],
+        ['BH70', 'BH70_Colour', null, null],
+        ['MSD700 Bucket', 'MSD700_Bucket_Colour', null, null],
+        ['MSD700 Concrete', 'MSD700_Concrete_Colour', null, null],
+        ['NE100JP', 'NE100JP_Colour_1', null, null],
+        ['NE200IS', 'NE200IS_Colour_1', null, null],
+        ['NEBF75', 'NEBF75_Colour', null, null]
     ];
 
     $sqlInsert = "INSERT INTO model (model_name, model_id, thumbnail_path, model_desc) VALUES (:nama, :id_model, :thumb, :desc)";
