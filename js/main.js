@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 // -- Scene
 const scene = new THREE.Scene();
@@ -17,6 +22,23 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
+
+// -- Post Processing
+let composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+
+outlinePass.edgeStrength = 5;
+outlinePass.edgeGlow = 0.8;
+outlinePass.edgeThickness = 1.5;
+outlinePass.visibleEdgeColor.set("#74e7d4");
+outlinePass.hiddenEdgeColor.set("#74e7d4");
+composer.addPass(outlinePass);
+
+const outputPass = new OutputPass();
+composer.addPass(outputPass);
+let selectedObjectsForOutline = [];
 
 // -- Orbit Controls
 const orbitControls = new OrbitControls(camera, renderer.domElement);
@@ -141,7 +163,8 @@ function animate() {
   requestAnimationFrame(animate);
 
   orbitControls.update();
-  renderer.render(scene, camera);
+  composer.render();
+  // renderer.render(scene, camera);
 }
 
 // -- Utilities
@@ -149,6 +172,7 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener("resize", onWindowResize, false);
 
@@ -229,14 +253,29 @@ function addTree(treeElementId) {
         const listItem = event.target.closest("li[data-uuid]");
         if (listItem) {
           const uuid = listItem.dataset.uuid;
+          const targetObject = scene.getObjectByProperty("uuid", uuid);
+
           newContainer.querySelectorAll("li.selected").forEach((li) => {
             li.classList.remove("selected");
           });
           listItem.classList.add("selected");
 
+          if (targetObject) {
+            selectedObjectsForOutline = [targetObject];
+          } else {
+            selectedObjectsForOutline = [];
+          }
+          outlinePass.selectedObjects = selectedObjectsForOutline;
+
           if (listItem.classList.contains("is-parent")) {
             listItem.classList.toggle("expanded");
           }
+        } else {
+          newContainer.querySelectorAll("li.selected").forEach((li) => {
+            li.classList.remove("selected");
+          });
+          selectedObjectsForOutline = [];
+          outlinePass.selectedObjects = selectedObjectsForOutline;
         }
       }
     });
