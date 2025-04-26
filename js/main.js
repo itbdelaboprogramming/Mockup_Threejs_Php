@@ -67,7 +67,6 @@ loader.load(
     load3D.traverse(function (child) {
       if (child.isMesh) {
         child.castShadow = true;
-        child.receiveShadow = true;
       }
     });
     scene.add(load3D);
@@ -75,6 +74,7 @@ loader.load(
     // load3D.scale.set(2, 2, 2);
 
     updateLightPosDisplay();
+    populateSceneTree(load3D, "scene-tree");
   },
   function (error) {
     console.error(error);
@@ -152,6 +152,96 @@ function onWindowResize() {
 }
 window.addEventListener("resize", onWindowResize, false);
 
+// -- Working Tree
+function populateSceneTree(root, treeElementId) {
+  const treeContainer = document.getElementById(treeElementId);
+  if (treeContainer) {
+    treeContainer.innerHTML = "";
+    root.children.forEach((child) => {
+      buildTree(child, treeContainer);
+    });
+    addTree(treeElementId);
+  } else {
+    console.log("element with ID " + treeElementId + " not found.");
+    return;
+  }
+}
+
+function buildTree(object, parent) {
+  const listItem = document.createElement("li");
+  listItem.dataset.uuid = object.uuid;
+
+  if (object.children.length > 0) {
+    listItem.classList.add("is-parent");
+  }
+  // parent.appendChild(listItem);
+
+  const visIcon = document.createElement("span");
+  visIcon.classList.add("vis-icon");
+  if (object.visible) {
+    visIcon.classList.add("visible");
+    visIcon.textContent = "V";
+  } else {
+    visIcon.classList.add("hidden");
+    visIcon.textContent = "X";
+  }
+  listItem.appendChild(visIcon);
+
+  const nameSpan = document.createElement("span");
+  nameSpan.classList.add("node-name");
+  nameSpan.textContent = object.name;
+  listItem.appendChild(nameSpan);
+
+  parent.appendChild(listItem);
+
+  if (object.children.length > 0) {
+    const childList = document.createElement("ul");
+    listItem.appendChild(childList);
+    object.children.forEach((child) => {
+      buildTree(child, childList);
+    });
+  }
+}
+
+function addTree(treeElementId) {
+  const treeContainer = document.getElementById(treeElementId);
+  if (treeContainer) {
+    const newContainer = treeContainer.cloneNode(false);
+    while (treeContainer.firstChild) {
+      newContainer.appendChild(treeContainer.firstChild);
+    }
+    treeContainer.parentNode.replaceChild(newContainer, treeContainer);
+
+    newContainer.addEventListener("click", (event) => {
+      if (event.target.matches(".vis-icon")) {
+        const icon = event.target;
+        const uuid = icon.closest("li[data-uuid]").dataset.uuid;
+        if (!uuid) return;
+
+        const targetObject = scene.getObjectByProperty("uuid", uuid);
+        if (targetObject) {
+          targetObject.visible = !targetObject.visible;
+          icon.classList.toggle("visible", targetObject.visible);
+          icon.classList.toggle("hidden", !targetObject.visible);
+          icon.textContent = targetObject.visible ? "V" : "X";
+        }
+      } else {
+        const listItem = event.target.closest("li[data-uuid]");
+        if (listItem) {
+          const uuid = listItem.dataset.uuid;
+          newContainer.querySelectorAll("li.selected").forEach((li) => {
+            li.classList.remove("selected");
+          });
+          listItem.classList.add("selected");
+
+          if (listItem.classList.contains("is-parent")) {
+            listItem.classList.toggle("expanded");
+          }
+        }
+      }
+    });
+  } else return;
+}
+
 // --Start
 animate();
-console.log(`Three.js version: ${THREE.REVISION}`);

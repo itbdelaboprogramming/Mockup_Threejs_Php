@@ -38,6 +38,11 @@
         </fieldset>
     </div>
 
+    <div class="working-tree">
+        <h2>Working Tree</h2>
+        <ul id="scene-tree"></ul>
+    </div>
+
     <script type="importmap">
     {
         "imports": {
