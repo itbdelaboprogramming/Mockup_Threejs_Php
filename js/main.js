@@ -7,6 +7,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 
 // -- Scene
 const scene = new THREE.Scene();
@@ -23,6 +24,33 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
+
+// -- CSS Renderer
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = "absolute";
+labelRenderer.domElement.style.top = "0px";
+labelRenderer.domElement.style.left = "0px";
+labelRenderer.domElement.style.pointerEvents = "none";
+document.body.appendChild(labelRenderer.domElement);
+
+const annotations = [
+  {
+    targetPoint: new THREE.Vector3(0, 1.2, 0.1),
+    labelPosition: new THREE.Vector3(0, 3, 2),
+    name: "Component 1",
+  },
+  {
+    targetPoint: new THREE.Vector3(0.5, 0.5, 0.5),
+    labelPosition: new THREE.Vector3(2, 1, 2),
+    name: "Component 2",
+  },
+  {
+    targetPoint: new THREE.Vector3(-0.4, 0.5, -0.4),
+    labelPosition: new THREE.Vector3(-2, 1.5, -2),
+    name: "Component 3",
+  },
+];
 
 // -- Post Processing
 let composer = new EffectComposer(renderer);
@@ -102,6 +130,40 @@ loader.load(
     load3D.position.set(0, -0.9, 0);
     // load3D.scale.set(2, 2, 2);
 
+    annotations.forEach((anno) => {
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "annotation-label";
+      labelDiv.textContent = anno.name;
+      labelDiv.style.pointerEvents = "auto";
+      labelDiv.style.cursor = "pointer";
+
+      const label = new CSS2DObject(labelDiv);
+      label.position.copy(anno.labelPosition);
+
+      load3D.add(label);
+
+      const points = [];
+      points.push(anno.targetPoint.clone());
+      points.push(anno.labelPosition.clone());
+
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        // linewidth: 30,
+        // transparent: true,
+        // opacity: 0,
+      });
+
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+
+      load3D.add(line);
+
+      labelDiv.addEventListener("click", () => {
+        console.log("Annotation Clicked:", anno.name, "Target Point:", anno.targetPoint);
+        // TO DO: tambah aksi lain, misal fokus kamera
+      });
+    });
+
     updateLightPosDisplay();
     populateSceneTree(load3D, "scene-tree");
   },
@@ -172,6 +234,7 @@ function animate() {
   orbitControls.update();
   composer.render();
   // renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
 }
 
 // -- Utilities
@@ -180,6 +243,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener("resize", onWindowResize, false);
 
@@ -199,6 +263,8 @@ function populateSceneTree(root, treeElementId) {
 }
 
 function buildTree(object, parent) {
+  if (object.isCSS2DObject || object.isLine) return;
+
   const listItem = document.createElement("li");
   listItem.dataset.uuid = object.uuid;
 

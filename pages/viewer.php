@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="viewer">
+    <div id="label-container"></div>
     <div class="back-button">
         <button onclick="location.href = 'catalog.php'">Back</button>
     </div>
