@@ -29,7 +29,9 @@ try {
         ['MSD700 Bucket', 'MSD700_Bucket_Colour', null, null],
         ['MSD700 Concrete', 'MSD700_Concrete_Colour', null, null],
         ['NE100JP', 'NE100JP_Colour_1', null, null],
+        ['NE100JP Draco', 'NE100JP_Colour_1_DRACO', null, null],
         ['NE200IS', 'NE200IS_Colour_1', null, null],
+        ['NE200IS Draco', 'NE200IS_Colour_1_DRACO', null, null],
         ['NEBF75', 'NEBF75_Colour', null, null]
     ];
 
