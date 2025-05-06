@@ -8,6 +8,7 @@ import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
+import { gsap } from "gsap";
 
 // -- Scene
 const scene = new THREE.Scene();
@@ -159,8 +160,46 @@ loader.load(
       load3D.add(line);
 
       labelDiv.addEventListener("click", () => {
-        console.log("Annotation Clicked:", anno.name, "Target Point:", anno.targetPoint);
-        // TO DO: tambah aksi lain, misal fokus kamera
+        const targetPoint = anno.targetPoint.clone();
+        const targetWorldPosition = load3D.localToWorld(targetPoint.clone());
+
+        const offsetDistance = 4;
+        const direction = new THREE.Vector3().subVectors(camera.position, orbitControls.target).normalize();
+        if (direction.lengthSq() < 0.01) {
+          direction.set(0, 0.5, 1).normalize();
+        }
+        const targetCameraPosition = targetWorldPosition.clone().addScaledVector(direction, offsetDistance);
+        targetCameraPosition.y = Math.max(targetCameraPosition.y, targetWorldPosition.y + 1);
+
+        const targetControlsTarget = targetWorldPosition;
+        const duration = 1.2;
+
+        // Hentikan animasi GSAP sebelumnya pada objek yang sama (penting!)
+        gsap.killTweensOf(camera.position);
+        gsap.killTweensOf(orbitControls.target);
+
+        gsap.to(camera.position, {
+          x: targetCameraPosition.x,
+          y: targetCameraPosition.y,
+          z: targetCameraPosition.z,
+          duration: duration,
+          ease: "power2.inOut", // Easing function
+          onUpdate: function () {},
+        });
+
+        gsap.to(orbitControls.target, {
+          x: targetControlsTarget.x,
+          y: targetControlsTarget.y,
+          z: targetControlsTarget.z,
+          duration: duration,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            // Penting! OrbitControls perlu tahu targetnya berubah,
+            // tapi karena controls.update() sudah ada di loop 'animate' utama,
+            // pemanggilan di sini mungkin tidak wajib, tapi aman untuk disertakan jika ada masalah.
+            // orbitControls.update(); // Coba tanpa ini dulu
+          },
+        });
       });
     });
 
