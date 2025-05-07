@@ -1,0 +1,290 @@
+/* ----------------------- Viewer ----------------------- */
+
+body.viewer {
+  margin: 0;
+  overflow: hidden;
+  background-color: #111;
+}
+
+canvas {
+  display: block;
+}
+
+#label-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.annotation-label {
+  pointer-events: auto;
+  cursor: pointer;
+
+  background-color: rgba(4, 68, 95, 0.9);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  font-family: Ubuntu;
+  /* font-weight: bold; */
+  font-size: 14px;
+  white-space: nowrap;
+  /* transform: translate(10px, -50%); Sesuaikan X dan Y */
+  transition: background-color 0.3s ease;
+}
+
+.annotation-label:hover {
+  background-color: var(--primary-color-50);
+  color: var(--primary-color-200);
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.back-button button {
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  border: 1px solid #fff;
+  padding: 8px 15px;
+  margin: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.back-button button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
+.rotate-button {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.rotate-button button {
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  border: 1px solid #fff;
+  padding: 8px 15px;
+  margin: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu;
+  font-size: 15px;
+}
+
+.rotate-button button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
+.light-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: var(--primary-color-25);
+  padding: 10px;
+  width: 250px;
+  border-radius: 5px;
+  color: var(--text-color-database-data);
+  font-family: Ubuntu;
+  font-size: 15px;
+  z-index: 10;
+}
+
+.light-controls fieldset div {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.light-controls label {
+  display: inline-block;
+  width: 20px;
+  margin-right: 10px;
+  font-size: 15px;
+}
+
+.light-controls input[type="range"] {
+  flex-grow: 1;
+  margin-right: 10px;
+  cursor: pointer;
+  vertical-align: middle;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+}
+
+.light-controls .slider-value {
+  display: inline-block;
+  min-width: 25px;
+  text-align: right;
+  padding: 1px 3px;
+  font-size: 15px;
+}
+
+.light-controls #lightPosDisplay {
+  margin-left: 10px;
+}
+
+.light-controls input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: var(--background-color-25);
+  border-radius: 4px;
+  border: 1px solid var(--primary-color-200);
+}
+
+.light-controls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--secondary-color-50);
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: var(--primary-color-50);
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+.working-tree {
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  width: 300px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: Ubuntu;
+  font-size: 15px;
+  z-index: 10;
+  border: 1px solid var(--primary-color-50);
+}
+
+.working-tree h2 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: var(--text-color-database-data);
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.working-tree #scene-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.working-tree #scene-tree ul {
+  list-style: none;
+  padding-left: 15px;
+  margin-top: 3px;
+  display: none;
+}
+
+.working-tree #scene-tree li {
+  display: block;
+  padding: 3px 0;
+  cursor: pointer;
+  position: relative;
+  /* padding-left: 0; */
+  box-sizing: border-box;
+}
+
+.working-tree #scene-tree li:hover {
+  font-weight: bold;
+}
+
+.working-tree #scene-tree li.selected {
+  background-color: var(--primary-color-50);
+  /* color: #fff; */
+  font-weight: bold;
+}
+
+.working-tree #scene-tree li::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 2px;
+  border-style: solid;
+  border-width: 4px 0 4px 6px;
+  border-color: transparent transparent transparent transparent;
+  cursor: pointer;
+}
+
+.working-tree #scene-tree li.is-parent::before {
+  border-color: transparent transparent transparent var(--primary-color-200);
+  content: "";
+}
+
+.working-tree #scene-tree li.expanded > ul {
+  display: block;
+}
+
+.working-tree #scene-tree li.is-parent,
+.working-tree #scene-tree li:not(.is-parent) {
+  padding-left: 10px;
+}
+
+.working-tree #scene-tree li.is-parent.expanded::before {
+  border-width: 6px 4px 0 4px;
+  border-color: var(--primary-color-200) transparent transparent transparent;
+  top: 8px;
+  left: 0;
+}
+
+.working-tree span.vis-icon {
+  position: absolute;
+  left: 18px;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  /* margin-left: 15px;
+    margin-right: 5px; */
+  cursor: pointer;
+  color: #ff0000;
+}
+
+.working-tree span.vis-icon:hover {
+  color: #fff;
+}
+.working-tree span.vis-icon.hidden {
+  color: #666;
+}
+
+.working-tree span.node-name {
+  cursor: pointer;
+  display: block;
+  text-indent: -2px;
+  /* flex-grow: 1; */
+  margin-left: 37px;
+  /* padding: 1px 3px; */
+  border-radius: 2px;
+  overflow-wrap: break-word;
+}
+
+.working-tree #scene-tree li.selected > span.node-name {
+  background-color: var(--primary-color-50);
+  font-weight: bold;
+}
+.working-tree #scene-tree li:hover > span.node-name {
+  font-weight: bold;
+}

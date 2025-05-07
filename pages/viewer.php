@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Project 1</title>
     <link rel="stylesheet" href="../css/style.css">
+    <!-- <link rel="stylesheet" href="../css/global.css"> -->
+    <!-- <link rel="stylesheet" href="../css/viewer.css"> -->
 </head>
 <body class="viewer">
     <div id="label-container"></div>
