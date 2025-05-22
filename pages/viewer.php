@@ -13,9 +13,9 @@
     <div class="back-button">
         <button onclick="location.href = 'catalog.php'">Back</button>
     </div>
-    <div class="animation-controls" style="position: absolute; bottom: 20px; left: 100px; z-index: 10;">
-        <button id="playAnimationBtn" style="margin-right: 5px; background-color: var(--primary-color-25); color: var(--text-color-database-data); border: 1px solid #fff; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: Ubuntu; font-size: 15px;">Play Animation</button>
-        <button id="stopAnimationBtn" style="background-color: var(--primary-color-25); color: var(--text-color-database-data); border: 1px solid #fff; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: Ubuntu; font-size: 15px;">Stop Animation</button>
+    <div class="animation-controls">
+        <button id="playAnimationBtn">Play</button>
+        <button id="stopAnimationBtn">Stop</button>
     </div>
     <div class="rotate-button">
         <button id="toggleRotateBtn">Rotate</button>

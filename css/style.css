@@ -379,6 +379,32 @@ canvas {
   color: var(--primary-color-25);
 }
 
+.animation-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+
+.animation-controls button {
+  background-color: var(--primary-color-25);
+  color: var(--text-color-database-data);
+  border: 1px solid #fff;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Ubuntu, sans-serif;
+  font-size: 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.animation-controls button:hover {
+  background-color: var(--primary-color-200);
+  color: var(--primary-color-25);
+}
+
 .light-controls {
   position: absolute;
   top: 20px;
