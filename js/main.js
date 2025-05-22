@@ -112,6 +112,9 @@ console.log(`Load model: ${modelPath}`);
 
 let load3D = null;
 const loader = new GLTFLoader();
+let mixer;
+let animationActions = [];
+let allAnimationsPlaying = false;
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/");
@@ -130,6 +133,20 @@ loader.load(
     scene.add(load3D);
     load3D.position.set(0, -0.9, 0);
     // load3D.scale.set(2, 2, 2);
+
+    // -- Animation
+    animationActions = [];
+    if (gltf.animations && gltf.animations.length) {
+      mixer = new THREE.AnimationMixer(load3D);
+      gltf.animations.forEach((clip) => {
+        const action = mixer.clipAction(clip);
+        // action.play();
+        animationActions.push(action);
+        if (allAnimationsPlaying) {
+          action.play();
+        }
+      });
+    }
 
     annotations.forEach((anno) => {
       const labelDiv = document.createElement("div");
@@ -193,12 +210,7 @@ loader.load(
           z: targetControlsTarget.z,
           duration: duration,
           ease: "power2.inOut",
-          onUpdate: function () {
-            // Penting! OrbitControls perlu tahu targetnya berubah,
-            // tapi karena controls.update() sudah ada di loop 'animate' utama,
-            // pemanggilan di sini mungkin tidak wajib, tapi aman untuk disertakan jika ada masalah.
-            // orbitControls.update(); // Coba tanpa ini dulu
-          },
+          onUpdate: function () {},
         });
       });
     });
@@ -211,8 +223,32 @@ loader.load(
   }
 );
 
+// -- Animation control
+function playAllAnimations() {
+  if (mixer && animationActions.length > 0) {
+    animationActions.forEach((action) => {
+      if (!action.isRunning()) {
+        action.reset().play();
+      }
+    });
+    allAnimationsPlaying = true;
+  }
+}
+
+function stopAllAnimations() {
+  if (mixer && animationActions.length > 0) {
+    animationActions.forEach((action) => {
+      action.stop();
+    });
+    allAnimationsPlaying = false;
+  }
+}
+
 // -- UI event listener
 const rotateBtn = document.getElementById("toggleRotateBtn");
+const playAnimationButton = document.getElementById("playAnimationBtn");
+const stopAnimationButton = document.getElementById("stopAnimationBtn");
+
 const lightPosDisplay = document.getElementById("lightPosDisplay");
 const lightSliderX = document.getElementById("lightSliderX");
 const lightValueX = document.getElementById("lightValueX");
@@ -226,6 +262,14 @@ if (rotateBtn) {
     isAutoRotate = !isAutoRotate;
     orbitControls.autoRotate = isAutoRotate;
   });
+}
+
+if (playAnimationButton) {
+  playAnimationButton.addEventListener("click", playAllAnimations);
+}
+
+if (stopAnimationButton) {
+  stopAnimationButton.addEventListener("click", stopAllAnimations);
 }
 
 // -- Update direct light
@@ -267,8 +311,13 @@ if (lightSliderZ && lightValueZ) {
 }
 
 // -- Animation loop
+let clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  if (mixer) {
+    mixer.update(delta);
+  }
 
   orbitControls.update();
   composer.render();
