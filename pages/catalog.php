@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/mysql_db.php'; // Ganti ke mysql_db.php jika menggunakan MySQL
+require_once __DIR__ . '/../config/sqlite_db.php'; // Ganti ke mysql_db.php jika menggunakan MySQL
 $models = [];
 
 try {
@@ -82,7 +82,7 @@ try {
     </div>
 
     <script type="module"> 
-        import { generateThumbnails } from '../js/thumbnail-generator.js'; 
+        import { generateThumbnails } from '../js/thumbnail_generator.js'; 
 
         const addModelButton = document.getElementById('addModelBtn');
         const modalOverlay = document.getElementById('addModelModal');
@@ -149,7 +149,7 @@ try {
 
                 try {
                     console.log(`Mencoba membuat thumbnail untuk: ${modelPath} menggunakan fungsi yang diimpor.`);
-                    const dataUrl = await generateThumbnails(modelPath, 300, 200); // Lebar & tinggi bisa disesuaikan
+                    const dataUrl = await generateThumbnails(modelPath, 300, 200); 
                     hiddenThumbnailInput.value = dataUrl;
                     thumbnailGenerationStatus.textContent = 'Thumbnail berhasil dibuat!';
                     console.log("Thumbnail data URL siap dikirim.");

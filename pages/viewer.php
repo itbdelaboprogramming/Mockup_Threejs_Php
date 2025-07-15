@@ -48,6 +48,25 @@
     <div class="working-tree">
         <h2>Working Tree</h2>
         <ul id="scene-tree"></ul>
+        
+    </div>
+
+    <div class="annotation-creator" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+        <h3 style="margin-top:0; margin-bottom: 10px; font-size: 18px;">Add Annotation (Testing)</h3>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label for="anno_text" style="font-weight:normal;">Label Text:</label>
+            <input type="text" id="anno_text" name="anno_text" style="width: 95%; padding: 5px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label style="font-weight:normal;">Target Point (X, Y, Z):</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="anno_x" step="0.1" placeholder="X" style="width: 30%; padding: 5px;">
+                <input type="number" id="anno_y" step="0.1" placeholder="Y" style="width: 30%; padding: 5px;">
+                <input type="number" id="anno_z" step="0.1" placeholder="Z" style="width: 30%; padding: 5px;">
+            </div>
+        </div>
+        <button id="addAnnotationBtn" style="padding: 8px 15px; background-color: #74e7d4; border: none; border-radius: 5px; cursor: pointer; color: #04445f; font-weight: bold;">Add</button>
+        <p id="annotation-feedback" style="margin-top: 10px; color: #ff7582;"></p>
     </div>
 
     <script type="importmap">
