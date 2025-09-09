@@ -32,8 +32,10 @@ try {
         ':target_y' => $target_point['y'],
         ':target_z' => $target_point['z']
     ]);
+
+    $new_id = $pdo->lastInsertId();
     
-    echo json_encode(['success' => true, 'message' => 'Annotation saved']);
+    echo json_encode(['success' => true, 'id' => $new_id, 'message' => 'Annotation saved']);
 
 } catch (\PDOException $e) {
     http_response_code(500);

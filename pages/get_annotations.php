@@ -11,7 +11,7 @@ if (!$model_id) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT label_text, target_x, target_y, target_z FROM annotations WHERE model_id = :model_id");
+    $stmt = $pdo->prepare("SELECT id, label_text, target_x, target_y, target_z, label_pos_x, label_pos_y, label_pos_z FROM annotations WHERE model_id = :model_id");
     $stmt->execute(['model_id' => $model_id]);
     $annotations = $stmt->fetchAll(PDO::FETCH_ASSOC);
     

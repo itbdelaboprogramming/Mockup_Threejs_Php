@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { gsap } from "gsap";
-
+import { SimplifyModifier } from "three/addons/modifiers/SimplifyModifier.js";
 import { scene, camera, renderer, labelRenderer, orbitControls } from './scene.js';
 import { setupLighting, directionalLight } from './lighting.js';
 import { setupEnvironment } from './environment.js';
@@ -9,7 +9,37 @@ import { loadModel } from './loader.js';
 import { setupUIControls, updateLightPosDisplay } from './ui_controls.js';
 import { startAnimationLoop } from './animation.js';
 import { setupInitialAnnotations, initAnnotationCreator } from './annotation.js'; 
-import { populateSceneTree } from './working_tree.js'; 
+import { populateSceneTree } from './working_tree.js';
+
+function displayModelStats(stats) {
+    const verticesEl = document.getElementById('stats-vertices');
+    const trianglesEl = document.getElementById('stats-triangles');
+
+    if (verticesEl && trianglesEl) {
+        verticesEl.textContent = stats.vertices.toLocaleString('id-ID');
+        trianglesEl.textContent = stats.triangles.toLocaleString('id-ID');
+    }
+}
+
+function calculateStats(model) {
+    let totalVertices = 0;
+    let totalTriangles = 0;
+    model.traverse(function (child) {
+        if (child.isMesh) {
+            const geometry = child.geometry;
+            totalVertices += geometry.attributes.position.count;
+            if (geometry.index) {
+                totalTriangles += geometry.index.count / 3;
+            } else {
+                totalTriangles += geometry.attributes.position.count / 3;
+            }
+        }
+    });
+    return {
+        vertices: totalVertices,
+        triangles: Math.floor(totalTriangles)
+    };
+}
 
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(labelRenderer.domElement);
@@ -20,16 +50,83 @@ setupEnvironment(scene);
 const { composer, outlinePass } = setupPostprocessing(renderer, scene, camera);
 
 let mixer;
-loadModel(scene, (loadedModel, animations, modelMixer) => {
+let currentModel; 
+
+loadModel(scene, (loadedModel, animations, modelMixer, stats) => {
     mixer = modelMixer;
-    
+    currentModel = loadedModel;
+    currentModel.traverse(child => {
+        if (child.isMesh) {
+            child.userData.originalGeometry = child.geometry.clone();
+        }
+    });
+
     setupUIControls(orbitControls, animations || [], mixer);
+    setupInitialAnnotations(currentModel, camera, scene, orbitControls);
+    initAnnotationCreator(currentModel, camera, scene, orbitControls, renderer);
+    populateSceneTree(currentModel, outlinePass, scene);
+    displayModelStats(stats);
+});
 
-    setupInitialAnnotations(loadedModel, camera, scene, orbitControls);
+const simplifySlider = document.getElementById('simplify-slider');
+const simplifyValue = document.getElementById('simplify-value');
+const applyBtn = document.getElementById('apply-simplify-btn');
+const statusEl = document.getElementById('optimizer-status');
 
-    initAnnotationCreator(loadedModel, camera, scene, orbitControls);
+simplifySlider.addEventListener('input', (event) => {
+    const percentage = parseFloat(event.target.value) * 100;
+    simplifyValue.textContent = `${percentage.toFixed(0)}%`;
+});
+
+applyBtn.addEventListener('click', () => {
+    if (!currentModel) {
+        statusEl.textContent = "Model not loaded yet.";
+        return;
+    }
+
+    const percentage = parseFloat(simplifySlider.value);    
+    statusEl.textContent = "Processing...";
+    applyBtn.disabled = true;
     
-    populateSceneTree(loadedModel, outlinePass, scene);
+    setTimeout(() => {
+        const startTime = performance.now();
+        try {
+            const modifier = new SimplifyModifier();
+            let meshesProcessed = 0;
+            currentModel.traverse(child => {
+                if (child.isMesh) {
+                    const originalGeometry = child.userData.originalGeometry || child.geometry;
+                    
+                    if (percentage === 100) {
+                         child.geometry = originalGeometry.clone();
+                    } else {
+                        const clonedGeometry = originalGeometry.clone();
+                        const originalVertexCount = clonedGeometry.attributes.position.count;
+                        const targetVertexCount = Math.floor(originalVertexCount * (1 - percentage));
+                        
+                        if (targetVertexCount < originalVertexCount && targetVertexCount > 0) {
+                            const simplifiedGeometry = modifier.modify(clonedGeometry, targetVertexCount);
+                            child.geometry.dispose(); 
+                            child.geometry = simplifiedGeometry;
+                        }
+                    }meshesProcessed++;
+                }
+            });
+            if (meshesProcessed === 0) {
+                throw new Error("No mesh found in the model.");
+            }
+            const endTime = performance.now();
+            const processTime = ((endTime - startTime) / 1000).toFixed(2);    
+            const newStats = calculateStats(currentModel);
+            displayModelStats(newStats);
+            statusEl.textContent = `Success! Processed in ${processTime}s.`;
+        } catch (error) {
+            console.error("Simplification failed:", error);
+            statusEl.textContent = `Error: ${error.message}`;
+        } finally {
+            applyBtn.disabled = false;
+        }
+    }, 50); 
 });
 
 const lightSliderX = document.getElementById("lightSliderX");
@@ -63,6 +160,66 @@ if (lightSliderZ) {
 
 updateLightPosDisplay(directionalLight.position);
 
+const flatShadingCheckbox = document.getElementById('flat-shading-checkbox');
+flatShadingCheckbox.addEventListener('change', (event) => {
+    const enableFlatShading = event.target.checked;
+
+    if (currentModel) {
+        currentModel.traverse(child => {
+            if (child.isMesh) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(material => {
+                        material.flatShading = enableFlatShading;
+                        material.needsUpdate = true; 
+                    });
+                } else if (child.material) {
+                    child.material.flatShading = enableFlatShading;
+                    child.material.needsUpdate = true;
+                }
+            }
+        });
+    }
+});
+
 startAnimationLoop(renderer, scene, camera, composer, labelRenderer, orbitControls, () => mixer);
+
+const toolbar = document.querySelector('.viewer-toolbar');
+if (toolbar) {
+    toolbar.addEventListener('click', function(event) {
+        const button = event.target.closest('button');
+        if (!button) return;
+
+        const targetId = button.dataset.target;
+        if (!targetId) return;
+
+        const targetPanel = document.getElementById(targetId);
+        if (!targetPanel) return;
+        
+        const isAlreadyVisible = targetPanel.classList.contains('visible');
+
+        if (targetId === 'working-tree' && isAlreadyVisible) {
+            outlinePass.selectedObjects = [];
+
+            const treeContainer = document.getElementById("scene-tree");
+            if (treeContainer) {
+                treeContainer.querySelectorAll("li.selected").forEach((li) => {
+                    li.classList.remove("selected");
+                });
+            }
+        }
+
+        document.querySelectorAll('.viewer-panel.visible').forEach(panel => {
+            panel.classList.remove('visible');
+        });
+        toolbar.querySelectorAll('button.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        if (!isAlreadyVisible) {
+            targetPanel.classList.add('visible');
+            button.classList.add('active');
+        }
+    });
+}
 
 console.log("All modules loaded.");

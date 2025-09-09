@@ -29,7 +29,10 @@ try {
         label_text TEXT NOT NULL,
         target_x REAL NOT NULL,
         target_y REAL NOT NULL,
-        target_z REAL NOT NULL
+        target_z REAL NOT NULL,
+        label_pos_x REAL,
+        label_pos_y REAL,
+        label_pos_z REAL
     );";
     $pdo->exec($sqlCreateAnnotations);
     echo "Tabel 'annotations' berhasil dibuat.<br>";
@@ -38,13 +41,16 @@ try {
     $sampleModels = [
         ['name' => 'BH70', 'id' => 'BH70_Colour', 'thumb' => '../assets/thumbnails/generated/BH70_Colour_1752228583.png', 'desc' => ''],
         ['name' => 'BH70 Animation', 'id' => 'BH70_Sticker addition', 'thumb' => '../assets/thumbnails/generated/BH70_Sticker_addition_1747926685.png', 'desc' => ''],
+        ['name' => 'NE200IS', 'id' => 'NE200IS_Colour_1', 'thumb' => '../assets/thumbnails/generated/NE100JP_Colour_1_1746607563.png', 'desc' => ''],
+        // ['name' => 'BH70 Animation', 'id' => 'BH70_Sticker addition', 'thumb' => '../assets/thumbnails/generated/BH70_Sticker_addition_1747926685.png', 'desc' => ''],
+        // ['name' => 'BH70 Animation', 'id' => 'BH70_Sticker addition', 'thumb' => '../assets/thumbnails/generated/BH70_Sticker_addition_1747926685.png', 'desc' => ''],
     ];
 
     // init sample annotations
     $sampleAnnotations = [
-        ['model_id' => 'BH70_Colour', 'label' => 'Label A', 'x' => 0.2, 'y' => 1.5, 'z' => 0.8],
-        ['model_id' => 'BH70_Colour', 'label' => 'Label B', 'x' => 0.9, 'y' => 1.2, 'z' => 0.1],
-        ['model_id' => 'BH70_Colour', 'label' => 'Label C', 'x' => -0.1, 'y' => 0.8, 'z' => -0.7],
+        // ['model_id' => 'BH70_Colour', 'label' => 'Label A', 'x' => 0.2, 'y' => 1.5, 'z' => 0.8],
+        // ['model_id' => 'BH70_Colour', 'label' => 'Label B', 'x' => 0.9, 'y' => 1.2, 'z' => 0.1],
+        // ['model_id' => 'BH70_Colour', 'label' => 'Label C', 'x' => -0.1, 'y' => 0.8, 'z' => -0.7],
     ];
 
     $sqlInsertModel = "INSERT INTO model (model_name, model_id, thumbnail_path, model_desc) VALUES (:nama, :id_model, :thumb, :desc)";

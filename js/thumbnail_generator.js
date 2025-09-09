@@ -37,13 +37,6 @@ export async function generateThumbnails(modelPath, width = 300, height = 200) {
         const size = box.getSize(new THREE.Vector3());
         thumbCamera.lookAt(center);
 
-        // Optional: Adjust camera position to fit the model better
-        // const maxDim = Math.max(size.x, size.y, size.z);
-        // const fov = thumbCamera.fov * (Math.PI / 180);
-        // let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-        // cameraZ *= 1.5; // Add some margin
-        // thumbCamera.position.set(center.x, center.y + size.y / 4, center.z + cameraZ);
-
         try {
           thumbRenderer.render(thumbScene, thumbCamera);
           const dataURL = thumbRenderer.domElement.toDataURL("image/png");

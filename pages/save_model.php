@@ -2,7 +2,7 @@
 define('GENERATED_THUMBNAILS_DIR', __DIR__ . '/../assets/thumbnails/generated/');
 define('GENERATED_THUMBNAILS_URL_PATH', '../assets/thumbnails/generated/'); 
 
-require_once __DIR__ . '/../config/sqlite_db.php'; // atau sqlite_db.php
+require_once __DIR__ . '/../config/sqlite_db.php'; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $model_name = trim($_POST['model_name'] ?? '');

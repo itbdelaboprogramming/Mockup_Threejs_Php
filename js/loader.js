@@ -35,9 +35,28 @@ function loadModel(scene, onModelLoaded) {
             if (gltf.animations && gltf.animations.length) {
                 mixer = new THREE.AnimationMixer(load3D);
             }
+
+            let totalVertices = 0;
+            let totalTriangles = 0;
+            load3D.traverse(function (child) {
+                if (child.isMesh) {
+                    const geometry = child.geometry;
+                    totalVertices += geometry.attributes.position.count;
+                    if (geometry.index) {
+                        totalTriangles += geometry.index.count / 3;
+                    } else {
+                        totalTriangles += geometry.attributes.position.count / 3;
+                    }
+                }
+            });
+
+            const stats = {
+                vertices: totalVertices,
+                triangles: Math.floor(totalTriangles) 
+            };
             
             if (onModelLoaded) {
-                onModelLoaded(load3D, gltf.animations, mixer);
+                onModelLoaded(load3D, gltf.animations, mixer, stats);
             }
         },
         undefined, 

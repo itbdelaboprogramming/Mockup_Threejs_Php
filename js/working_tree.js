@@ -26,7 +26,9 @@ function buildTree(object, parentElement) {
 
   const visIcon = document.createElement("span");
   visIcon.classList.add("vis-icon");
-  visIcon.textContent = object.visible ? "V" : "X";
+  
+  visIcon.textContent = object.visible ? "●" : "○";
+  
   visIcon.classList.toggle("visible", object.visible);
   visIcon.classList.toggle("hidden", !object.visible);
   listItem.appendChild(visIcon);
@@ -57,7 +59,9 @@ function addTreeEventListeners(treeContainer, outlinePass, scene) {
       const targetObject = scene.getObjectByProperty("uuid", uuid);
       if (targetObject) {
         targetObject.visible = !targetObject.visible;
-        icon.textContent = targetObject.visible ? "V" : "X";
+
+        icon.textContent = targetObject.visible ? "●" : "○";
+        
         icon.classList.toggle("visible", targetObject.visible);
         icon.classList.toggle("hidden", !targetObject.visible);
       }
