@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $thumbnail_db_path = GENERATED_THUMBNAILS_URL_PATH . $thumbnail_filename; 
             error_log("Thumbnail saved successfully in: " . $thumbnail_file_path);
         } else {
-            error_log("Failed to save thumbnail in: " . $thumbnail_file_path . );
+            error_log("Failed to save thumbnail in: " . $thumbnail_file_path);
             header("Location: catalog.php?error=filesavefailed");
             exit;
         }
