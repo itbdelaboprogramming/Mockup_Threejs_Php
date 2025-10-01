@@ -10,45 +10,39 @@
 
 ## Description
 
-A web application built with **PHP** and **Three.js** to display a catalog of 3D models (`.glb`) with a some feature and interactive viewer. 
+A web application built with **PHP** and **Three.js** to display a catalog of 3D models (`.glb`) with a some feature for both users and administrators. 
 
 ## Key Features
 
-#### **Model Management & Display**
-- **Model Catalog:** A gallery view for all 3D models stored in the database.
-- **Dynamic Model Addition:** A form to add new models, complete with **automatic thumbnail generation** from the `.glb` file.
-- **Full 3D Navigation:** Camera controls (Orbit, Pan, Zoom) to view the model from any angle.
-- **Auto-Rotation:** A toggle button to enable or disable automatic model rotation, with a clear visual indicator.
+#### User Features
+-   **Model Catalog:** Browse an interactive gallery of 3D models.
+-   **3D Viewer:** View models in a dedicated viewer with intuitive controls for rotation, panning, and zooming.
+-   **Annotations:** View detailed annotations placed on the models. Clicking on an annotation animates the camera to its target location.
+-   **Model Animations:** Play and pause built-in model animations.
 
-#### **Inspection & Analysis**
-- **Working Tree (Object Structure):**
-    - A hierarchical view of all objects within the 3D model.
-    - Toggle the visibility (hide/show) of each object with intuitive icons (●/○).
-    - Select an object from the tree to **highlight** the corresponding part on the model.
-- **Model Statistics:** Accurately display the number of vertices and triangles.
-- **Mesh Optimization (Simplify):** Reduce model complexity in real-time using a slider to improve performance on low-spec devices.
+#### Admin Features
+-   **Model Management:** Add, edit, and delete models directly from the catalog.
+-   **Thumbnail Generation:** Automatically generate thumbnails for new models during the upload process.
+-   **Annotation Management:** Add, edit, and delete annotations on a model, with dynamic placement and real-time updates.
+-   **Model Optimization:**
+    -   **Simplification:** Reduce the polygon count of a model to improve performance.
+    -   **Flat Shading:** Toggle flat shading for a different rendering style.
+-   **Model Statistics:** View real-time statistics like vertex and triangle counts.
+-   **Scene Tree:** Explore the hierarchical structure of the 3D scene.
 
-#### **Annotation & Presentation**
-- **Complete Annotation System:**
-    - **Create, Read, Delete (CRD):** Add annotations to specific points on the model, which are saved to the database.
-    - **Edit Annotation Text:** Modify the text of existing annotation labels.
-    - **Drag & Drop Labels:** Visually reposition annotation labels to avoid overlap and maintain readability.
-- **Lighting & Render Controls:**
-    - **Dynamic Light Control:** Adjust the position of the directional light on the X, Y, and Z axes using sliders.
-    - **Flat Shading:** An option to change the rendering mode to flat shading.
-- **Animation Support:**
-    - Full support for `.glb` models that contain animations.
-    - **Play/Pause/Stop** controls.
+## Tech Stack
 
-## Technology Stack
+This project is built using a combination of modern web technologies.
 
-| Category      | Technology                                    |
-| :------------ | :-------------------------------------------- |
-| **Backend** | PHP                                           |
-| **Database** | SQLite                                        |
-| **Frontend** | JavaScript                                    |
-| **3D Render** | **Three.js** |
-| **Server** | Apache (via XAMPP)                            |
+-   **Backend:** PHP with SQLite for database management. A configuration for MySQL is also available.
+-   **Frontend:** HTML, CSS, and modular JavaScript.
+-   **3D Graphics:** [Three.js](https://threejs.org/) for all 3D rendering, model loading, and interaction.
+-   **Key Libraries:**
+    -   [GLTFLoader](https://threejs.org/docs/#examples/en/loaders/GLTFLoader): To load GLB 3D models.
+    -   [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls): For camera control.
+    -   [CSS2DRenderer](https://threejs.org/docs/#examples/en/renderers/CSS2DRenderer): To render HTML-based annotations within the 3D scene.
+    -   [GSAP](https://gsap.com/): For smooth camera animations.
+    -   [Vanta.js](https://www.vantajs.com/): For the animated background effects on the login and catalog pages.
 
 ## Local Installation & Setup
 
@@ -71,14 +65,14 @@ A web application built with **PHP** and **Three.js** to display a catalog of 3D
 4.  **Initialize the Database:**
     - Open browser and navigate to the following URL to create the necessary tables and initial data:
         ```
-        http://localhost/Mockup_Threejs_Php/config/setup_sqlite.php
+        http://localhost/path/to/your/project/config/setup_sqlite.php
         ```
     - This page is safe to run multiple times if you wish to reset the database.
 
 5.  **Run the Application:**
     - Access the project's root URL:
         ```
-        http://localhost/Mockup_Threejs_Php/
+        http://localhost/path/to/your/project/
         ```
 
 ## How to Use
@@ -89,10 +83,36 @@ A web application built with **PHP** and **Three.js** to display a catalog of 3D
 3.  Fill in the model name and the **Model ID** (must be the same as the `.glb` filename **without the extension**).
 4.  Click "Save". The application will automatically render the model in the background to create a thumbnail and save it to the database.
 
-#### Navigating the Viewer
-- **Opening a Model:** Click on a model card in the catalog.
-- **Accessing Features:** Use the vertical toolbar on the left to show or hide control panels like the Working Tree, Optimizer, and others.
-- **Model Interaction:**
-    - **Orbit:** Left-click & drag.
-    - **Pan:** Right-click & drag.
-    - **Zoom:** Use the mouse scroll wheel.
+#### Usage
+-   **Login:** The default admin password is "admin". You can log in as a regular user without a password to view the catalog.
+-   **Model Viewer:** Navigate to the viewer page for any model. Use your mouse to control the camera (left-click to orbit, right-click to pan, scroll to zoom).
+-   **Admin Panel:** After logging in as an admin, you will see additional buttons in the viewer toolbar. These will open various panels for optimization and annotation.
+
+## File Structure
+<pre>
+.
+├── assets/
+│   ├── model/             # Your .glb model files go here
+│   ├── thumbnails/      
+│   └── ...
+├── config/
+│   ├── mysql_db.php     
+│   ├── setup_sqlite.php   # Script to initialize SQLite DB
+│   └── sqlite_db.php    
+├── css/
+│   └── style.css          # Main stylesheet
+├── doc/                   # Project Documentation
+├── js/
+│   ├── animation.js
+│   ├── annotation.js
+│   ├── loader.js
+│   ├── main.js
+│   └── ...                # All Three.js modules
+├── pages/
+│   ├── catalog.php        # Model catalog page
+│   ├── login.php          # Login page
+│   ├── viewer.php         # The main 3D viewer
+│   └── ...                # PHP backend scripts
+├── index.php              # Main entry point
+└── README.md
+</pre>
