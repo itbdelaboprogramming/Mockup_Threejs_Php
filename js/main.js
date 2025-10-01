@@ -8,7 +8,7 @@ import { setupPostprocessing } from './postprocessing.js';
 import { loadModel } from './loader.js';
 import { setupUIControls, updateLightPosDisplay } from './ui_controls.js';
 import { startAnimationLoop } from './animation.js';
-import { setupInitialAnnotations, initAnnotationCreator } from './annotation.js'; 
+import { setupInitialAnnotations, initAnnotationCreator, updateAnnotationsVisibility } from './annotation.js'; 
 import { populateSceneTree } from './working_tree.js';
 
 function displayModelStats(stats) {
@@ -231,5 +231,5 @@ if (toolbar) {
     });
 }
 
-startAnimationLoop(renderer, scene, camera, composer, labelRenderer, orbitControls, () => mixer);
+startAnimationLoop(renderer, scene, camera, composer, labelRenderer, orbitControls, () => mixer, updateAnnotationsVisibility);
 console.log("All modules loaded.");

@@ -8,6 +8,7 @@ let currentModelId = null;
 let placementModeActive = false;
 let placementMarker = null;
 let currentPlacementPoint = null;
+let updatableAnnotations = [];
 
 function initPlacementMode(model, camera, scene, renderer, orbitControls) {
     const placementModeBtn = document.getElementById('placementModeBtn');
@@ -287,6 +288,8 @@ function createAndPlaceAnnotation(data, model, camera, scene, orbitControls, use
     
     scene.add(label);
     scene.add(line);
+
+    updatableAnnotations.push({ label: label, line: line})
     
     label.userData = { line: line, target: targetWorldPosition, id: id };
     placedLabels.push({ position: bestCandidate, sphere: new THREE.Sphere(bestCandidate, labelRadius) });
@@ -403,4 +406,20 @@ function setupInitialAnnotations(model, camera, scene, orbitControls, userRole) 
   fetchAndRenderAnnotations(model, camera, scene, orbitControls, userRole);
 }
 
-export { setupInitialAnnotations, initAnnotationCreator };
+function updateAnnotationsVisibility(camera) {
+    const ANNOTATION_MAX_DISTANCE = 50; 
+
+    updatableAnnotations.forEach(anno => {
+        const distance = camera.position.distanceTo(anno.label.position);
+
+        if (distance < ANNOTATION_MAX_DISTANCE) {
+            anno.label.visible = true;
+            anno.line.visible = true;
+        } else {
+            anno.label.visible = false;
+            anno.line.visible = false;
+        }
+    });
+}
+
+export { setupInitialAnnotations, initAnnotationCreator, updateAnnotationsVisibility };

@@ -54,6 +54,23 @@ function loadModel(scene, onModelLoaded) {
                 vertices: totalVertices,
                 triangles: Math.floor(totalTriangles) 
             };
+
+            const ringGeometry = new THREE.RingGeometry(
+                1.2,  // innerRadius
+                1.3,  // outerRadius
+                100    // thetaSegments
+            );
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ffff, 
+                transparent: true,
+            });
+            const pulsingRing = new THREE.Mesh(ringGeometry, ringMaterial);
+
+            pulsingRing.rotation.x = -Math.PI / 2;
+            pulsingRing.position.y = -0.9;
+
+            scene.add(pulsingRing);
+            window.pulsingRing = pulsingRing; 
             
             if (onModelLoaded) {
                 onModelLoaded(load3D, gltf.animations, mixer, stats);
