@@ -11,6 +11,7 @@ let currentPlacementPoint = null;
 
 function initPlacementMode(model, camera, scene, renderer, orbitControls) {
     const placementModeBtn = document.getElementById('placementModeBtn');
+    if (!placementModeBtn) return;
 
     if (!placementMarker) {
         const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
@@ -26,8 +27,8 @@ function initPlacementMode(model, camera, scene, renderer, orbitControls) {
         if (
             event.clientX < canvasBounds.left ||
             event.clientX > canvasBounds.right ||
-            event.clientY < canvasBounds.top ||
-            event.clientY > canvasBounds.bottom
+            event.clientY > canvasBounds.bottom ||
+            event.clientY < canvasBounds.top
         ) {return;}
 
         const mouse = new THREE.Vector2();
@@ -69,7 +70,7 @@ function initPlacementMode(model, camera, scene, renderer, orbitControls) {
     }
 }
 
-function createAndPlaceAnnotation(data, model, camera, scene, orbitControls) {
+function createAndPlaceAnnotation(data, model, camera, scene, orbitControls, userRole) {
     const { id, name, targetPoint, labelPosition } = data;
     const labelRadius = 1.5; 
     const targetWorldPosition = model.localToWorld(targetPoint.clone());
@@ -134,25 +135,149 @@ function createAndPlaceAnnotation(data, model, camera, scene, orbitControls) {
     textSpan.className = "annotation-text";
     textSpan.textContent = name;
     
-    const buttonsDiv = document.createElement("div");
-    buttonsDiv.className = "annotation-buttons";
-    const moveBtn = document.createElement("button");
-    moveBtn.textContent = "✥"; 
-    moveBtn.className = "annotation-move-btn";
-    moveBtn.title = "Move Label"; 
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "✎"; 
-    editBtn.className = "annotation-edit-btn";
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑"; 
-    deleteBtn.className = "annotation-delete-btn";
-
-    buttonsDiv.appendChild(moveBtn);
-    buttonsDiv.appendChild(editBtn);
-    buttonsDiv.appendChild(deleteBtn);
     labelDiv.appendChild(textSpan);
-    labelDiv.appendChild(buttonsDiv);
+
+    if (userRole === 'admin') {
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.className = "annotation-buttons";
+        const moveBtn = document.createElement("button");
+        moveBtn.textContent = "✥"; 
+        moveBtn.className = "annotation-move-btn";
+        moveBtn.title = "Move Label"; 
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "✎"; 
+        editBtn.className = "annotation-edit-btn";
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "🗑"; 
+        deleteBtn.className = "annotation-delete-btn";
+
+        buttonsDiv.appendChild(moveBtn);
+        buttonsDiv.appendChild(editBtn);
+        buttonsDiv.appendChild(deleteBtn);
+        labelDiv.appendChild(buttonsDiv);
     
+        // Drag and Drop, Edit, Delete (Admin Only)
+        moveBtn.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+            orbitControls.enabled = false;
+
+            const plane = new THREE.Plane();
+            const planeNormal = camera.position.clone().sub(label.position).normalize();
+            plane.setFromNormalAndCoplanarPoint(planeNormal, label.position);
+            
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const intersection = new THREE.Vector3();
+
+            function onMouseMove(moveEvent) {
+                mouse.x = (moveEvent.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(moveEvent.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                if (raycaster.ray.intersectPlane(plane, intersection)) {
+                    label.position.copy(intersection);
+                    const positions = line.geometry.attributes.position.array;
+                    positions[3] = intersection.x;
+                    positions[4] = intersection.y;
+                    positions[5] = intersection.z;
+                    line.geometry.attributes.position.needsUpdate = true;
+                }
+            }
+
+            async function onMouseUp() {
+                orbitControls.enabled = true;
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+
+                try {
+                    const response = await fetch('../pages/update_annotation.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: label.userData.id,
+                            label_pos: {
+                                x: label.position.x,
+                                y: label.position.y,
+                                z: label.position.z,
+                            }
+                        })
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                       console.error('Failed to save label position:', result.error);
+                    }
+                } catch (error) {
+                    console.error('Error saving label position:', error);
+                }
+            }
+
+            window.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('mouseup', onMouseUp, false);
+        });
+        
+        deleteBtn.addEventListener('click', async (event) => {
+            event.stopPropagation(); 
+            if (!confirm(`Are you sure you want to delete annotation "${textSpan.textContent}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('../pages/delete_annotation.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    scene.remove(label);
+                    scene.remove(line);
+                    console.log(`Annotation ${id} deleted.`);
+                } else {
+                    alert('Error deleting annotation: ' + result.error);
+                }
+            } catch (error) {
+                alert('Failed to connect to server.');
+                console.error("Delete error:", error);
+            }
+        });
+
+        editBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            const newText = prompt("Enter new label text:", textSpan.textContent);
+            
+            if (newText && newText.trim() !== "" && newText !== textSpan.textContent) {
+                try {
+                    const response = await fetch('../pages/update_annotation.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id, label_text: newText })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        textSpan.textContent = newText;
+                        console.log(`Annotation ${id} updated.`);
+                    } else {
+                        alert('Error updating annotation: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Failed to connect to server.');
+                    console.error("Update error:", error);
+                }
+            }
+        });
+    }
+    
+    textSpan.addEventListener("click", () => {
+        const offsetDistance = 4;
+        const direction = new THREE.Vector3().subVectors(camera.position, orbitControls.target).normalize();
+        const targetCameraPosition = targetWorldPosition.clone().addScaledVector(direction, offsetDistance);
+        targetCameraPosition.y = Math.max(targetCameraPosition.y, targetWorldPosition.y + 1);
+        gsap.to(camera.position, { ...targetCameraPosition, duration: 1.2, ease: "power2.inOut" });
+        gsap.to(orbitControls.target, { ...targetWorldPosition, duration: 1.2, ease: "power2.inOut" });
+    });
+
     const label = new CSS2DObject(labelDiv);
     label.position.copy(bestCandidate);
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
@@ -165,130 +290,9 @@ function createAndPlaceAnnotation(data, model, camera, scene, orbitControls) {
     
     label.userData = { line: line, target: targetWorldPosition, id: id };
     placedLabels.push({ position: bestCandidate, sphere: new THREE.Sphere(bestCandidate, labelRadius) });
-    
-    // Drag and Drop
-    moveBtn.addEventListener('mousedown', (event) => {
-        event.stopPropagation();
-        orbitControls.enabled = false;
-
-        const plane = new THREE.Plane();
-        const planeNormal = camera.position.clone().sub(label.position).normalize();
-        plane.setFromNormalAndCoplanarPoint(planeNormal, label.position);
-        
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        const intersection = new THREE.Vector3();
-
-        function onMouseMove(moveEvent) {
-            mouse.x = (moveEvent.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(moveEvent.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-
-            if (raycaster.ray.intersectPlane(plane, intersection)) {
-                label.position.copy(intersection);
-                const positions = line.geometry.attributes.position.array;
-                positions[3] = intersection.x;
-                positions[4] = intersection.y;
-                positions[5] = intersection.z;
-                line.geometry.attributes.position.needsUpdate = true;
-            }
-        }
-
-        async function onMouseUp() {
-            orbitControls.enabled = true;
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
-
-            try {
-                const response = await fetch('../pages/update_annotation.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: label.userData.id,
-                        label_pos: {
-                            x: label.position.x,
-                            y: label.position.y,
-                            z: label.position.z,
-                        }
-                    })
-                });
-                const result = await response.json();
-                if (!result.success) {
-                   console.error('Failed to save label position:', result.error);
-                }
-            } catch (error) {
-                console.error('Error saving label position:', error);
-            }
-        }
-
-        window.addEventListener('mousemove', onMouseMove, false);
-        window.addEventListener('mouseup', onMouseUp, false);
-    });
-    
-    deleteBtn.addEventListener('click', async (event) => {
-        event.stopPropagation(); 
-        if (!confirm(`Are you sure you want to delete annotation "${textSpan.textContent}"?`)) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('../pages/delete_annotation.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                scene.remove(label);
-                scene.remove(line);
-                console.log(`Annotation ${id} deleted.`);
-            } else {
-                alert('Error deleting annotation: ' + result.error);
-            }
-        } catch (error) {
-            alert('Failed to connect to server.');
-            console.error("Delete error:", error);
-        }
-    });
-
-    editBtn.addEventListener('click', async (event) => {
-        event.stopPropagation();
-        const newText = prompt("Enter new label text:", textSpan.textContent);
-        
-        if (newText && newText.trim() !== "" && newText !== textSpan.textContent) {
-            try {
-                const response = await fetch('../pages/update_annotation.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, label_text: newText })
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    textSpan.textContent = newText;
-                    console.log(`Annotation ${id} updated.`);
-                } else {
-                    alert('Error updating annotation: ' + result.error);
-                }
-            } catch (error) {
-                alert('Failed to connect to server.');
-                console.error("Update error:", error);
-            }
-        }
-    });
-    
-    textSpan.addEventListener("click", () => {
-        const offsetDistance = 4;
-        const direction = new THREE.Vector3().subVectors(camera.position, orbitControls.target).normalize();
-        const targetCameraPosition = targetWorldPosition.clone().addScaledVector(direction, offsetDistance);
-        targetCameraPosition.y = Math.max(targetCameraPosition.y, targetWorldPosition.y + 1);
-        gsap.to(camera.position, { ...targetCameraPosition, duration: 1.2, ease: "power2.inOut" });
-        gsap.to(orbitControls.target, { ...targetWorldPosition, duration: 1.2, ease: "power2.inOut" });
-    });
 }
 
-async function fetchAndRenderAnnotations(model, camera, scene, orbitControls) {
+async function fetchAndRenderAnnotations(model, camera, scene, orbitControls, userRole) {
     const urlParams = new URLSearchParams(window.location.search);
     currentModelId = urlParams.get('model');
 
@@ -319,14 +323,17 @@ async function fetchAndRenderAnnotations(model, camera, scene, orbitControls) {
                       )
                     : null
             };
-            createAndPlaceAnnotation(annotationData, model, camera, scene, orbitControls);
+            createAndPlaceAnnotation(annotationData, model, camera, scene, orbitControls, userRole);
         });
     } catch (error) {
         console.error("Failed to fetch annotations:", error);
     }
 }
 
-function initAnnotationCreator(model, camera, scene, orbitControls, renderer) {
+function initAnnotationCreator(model, camera, scene, orbitControls, renderer, userRole) {
+    if (userRole !== 'admin') {
+        return; 
+    }
     initPlacementMode(model, camera, scene, renderer, orbitControls);
 
     const addBtn = document.getElementById('addAnnotationBtn');
@@ -370,7 +377,7 @@ function initAnnotationCreator(model, camera, scene, orbitControls, renderer) {
                             currentPlacementPoint.z
                         ),
                         labelPosition: null 
-                    }, model, camera, scene, orbitControls);
+                    }, model, camera, scene, orbitControls, userRole);
                     
                     document.getElementById('anno_text').value = '';
 
@@ -390,10 +397,10 @@ function initAnnotationCreator(model, camera, scene, orbitControls, renderer) {
     }
 }
 
-function setupInitialAnnotations(model, camera, scene, orbitControls) {
+function setupInitialAnnotations(model, camera, scene, orbitControls, userRole) {
   placedLabels = [];
   modelBoundingBox = null;
-  fetchAndRenderAnnotations(model, camera, scene, orbitControls);
+  fetchAndRenderAnnotations(model, camera, scene, orbitControls, userRole);
 }
 
 export { setupInitialAnnotations, initAnnotationCreator };

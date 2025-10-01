@@ -51,83 +51,116 @@ const { composer, outlinePass } = setupPostprocessing(renderer, scene, camera);
 
 let mixer;
 let currentModel; 
+const userRole = window.userRole; 
 
 loadModel(scene, (loadedModel, animations, modelMixer, stats) => {
     mixer = modelMixer;
     currentModel = loadedModel;
-    currentModel.traverse(child => {
-        if (child.isMesh) {
-            child.userData.originalGeometry = child.geometry.clone();
-        }
-    });
-
+    
     setupUIControls(orbitControls, animations || [], mixer);
-    setupInitialAnnotations(currentModel, camera, scene, orbitControls);
-    initAnnotationCreator(currentModel, camera, scene, orbitControls, renderer);
-    populateSceneTree(currentModel, outlinePass, scene);
-    displayModelStats(stats);
+    setupInitialAnnotations(currentModel, camera, scene, orbitControls, userRole);
+    populateSceneTree(currentModel, outlinePass, scene, userRole);
+    displayModelStats(stats); 
+
+    if (userRole === 'admin') {
+        currentModel.traverse(child => {
+            if (child.isMesh) {
+                child.userData.originalGeometry = child.geometry.clone();
+            }
+        });
+        initAnnotationCreator(currentModel, camera, scene, orbitControls, renderer, userRole);
+    }
 });
 
-const simplifySlider = document.getElementById('simplify-slider');
-const simplifyValue = document.getElementById('simplify-value');
-const applyBtn = document.getElementById('apply-simplify-btn');
-const statusEl = document.getElementById('optimizer-status');
+if (userRole === 'admin') {
+    const simplifySlider = document.getElementById('simplify-slider');
+    const simplifyValue = document.getElementById('simplify-value');
+    const applyBtn = document.getElementById('apply-simplify-btn');
+    const statusEl = document.getElementById('optimizer-status');
 
-simplifySlider.addEventListener('input', (event) => {
-    const percentage = parseFloat(event.target.value) * 100;
-    simplifyValue.textContent = `${percentage.toFixed(0)}%`;
-});
-
-applyBtn.addEventListener('click', () => {
-    if (!currentModel) {
-        statusEl.textContent = "Model not loaded yet.";
-        return;
+    if (simplifySlider) {
+        simplifySlider.addEventListener('input', (event) => {
+            const percentage = parseFloat(event.target.value) * 100;
+            simplifyValue.textContent = `${percentage.toFixed(0)}%`;
+        });
     }
 
-    const percentage = parseFloat(simplifySlider.value);    
-    statusEl.textContent = "Processing...";
-    applyBtn.disabled = true;
-    
-    setTimeout(() => {
-        const startTime = performance.now();
-        try {
-            const modifier = new SimplifyModifier();
-            let meshesProcessed = 0;
-            currentModel.traverse(child => {
-                if (child.isMesh) {
-                    const originalGeometry = child.userData.originalGeometry || child.geometry;
-                    
-                    if (percentage === 100) {
-                         child.geometry = originalGeometry.clone();
-                    } else {
-                        const clonedGeometry = originalGeometry.clone();
-                        const originalVertexCount = clonedGeometry.attributes.position.count;
-                        const targetVertexCount = Math.floor(originalVertexCount * (1 - percentage));
-                        
-                        if (targetVertexCount < originalVertexCount && targetVertexCount > 0) {
-                            const simplifiedGeometry = modifier.modify(clonedGeometry, targetVertexCount);
-                            child.geometry.dispose(); 
-                            child.geometry = simplifiedGeometry;
-                        }
-                    }meshesProcessed++;
-                }
-            });
-            if (meshesProcessed === 0) {
-                throw new Error("No mesh found in the model.");
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            if (!currentModel) {
+                statusEl.textContent = "Model not loaded yet.";
+                return;
             }
-            const endTime = performance.now();
-            const processTime = ((endTime - startTime) / 1000).toFixed(2);    
-            const newStats = calculateStats(currentModel);
-            displayModelStats(newStats);
-            statusEl.textContent = `Success! Processed in ${processTime}s.`;
-        } catch (error) {
-            console.error("Simplification failed:", error);
-            statusEl.textContent = `Error: ${error.message}`;
-        } finally {
-            applyBtn.disabled = false;
-        }
-    }, 50); 
-});
+
+            const percentage = parseFloat(simplifySlider.value);    
+            statusEl.textContent = "Processing...";
+            applyBtn.disabled = true;
+            
+            setTimeout(() => {
+                const startTime = performance.now();
+                try {
+                    const modifier = new SimplifyModifier();
+                    let meshesProcessed = 0;
+                    currentModel.traverse(child => {
+                        if (child.isMesh) {
+                            const originalGeometry = child.userData.originalGeometry || child.geometry;
+                            
+                            if (percentage === 1) {
+                                child.geometry = originalGeometry.clone();
+                            } else {
+                                const clonedGeometry = originalGeometry.clone();
+                                const originalVertexCount = clonedGeometry.attributes.position.count;
+                                const targetVertexCount = Math.floor(originalVertexCount * (1 - percentage));
+                                
+                                if (targetVertexCount < originalVertexCount && targetVertexCount > 0) {
+                                    const simplifiedGeometry = modifier.modify(clonedGeometry, targetVertexCount);
+                                    child.geometry.dispose(); 
+                                    child.geometry = simplifiedGeometry;
+                                }
+                            }
+                            meshesProcessed++;
+                        }
+                    });
+                    if (meshesProcessed === 0) {
+                        throw new Error("No mesh found in the model.");
+                    }
+                    const endTime = performance.now();
+                    const processTime = ((endTime - startTime) / 1000).toFixed(2);    
+                    const newStats = calculateStats(currentModel);
+                    displayModelStats(newStats);
+                    statusEl.textContent = `Success! Processed in ${processTime}s.`;
+                } catch (error) {
+                    console.error("Simplification failed:", error);
+                    statusEl.textContent = `Error: ${error.message}`;
+                } finally {
+                    applyBtn.disabled = false;
+                }
+            }, 50); 
+        });
+    }
+    
+    const flatShadingCheckbox = document.getElementById('flat-shading-checkbox');
+    if (flatShadingCheckbox) {
+        flatShadingCheckbox.addEventListener('change', (event) => {
+            const enableFlatShading = event.target.checked;
+            if (currentModel) {
+                currentModel.traverse(child => {
+                    if (child.isMesh) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(material => {
+                                material.flatShading = enableFlatShading;
+                                material.needsUpdate = true; 
+                            });
+                        } else if (child.material) {
+                            child.material.flatShading = enableFlatShading;
+                            child.material.needsUpdate = true;
+                        }
+                    }
+                });
+            }
+        });
+    }
+}
 
 const lightSliderX = document.getElementById("lightSliderX");
 const lightValueX = document.getElementById("lightValueX");
@@ -157,31 +190,7 @@ if (lightSliderZ) {
         updateLightPosDisplay(directionalLight.position);
     });
 }
-
 updateLightPosDisplay(directionalLight.position);
-
-const flatShadingCheckbox = document.getElementById('flat-shading-checkbox');
-flatShadingCheckbox.addEventListener('change', (event) => {
-    const enableFlatShading = event.target.checked;
-
-    if (currentModel) {
-        currentModel.traverse(child => {
-            if (child.isMesh) {
-                if (Array.isArray(child.material)) {
-                    child.material.forEach(material => {
-                        material.flatShading = enableFlatShading;
-                        material.needsUpdate = true; 
-                    });
-                } else if (child.material) {
-                    child.material.flatShading = enableFlatShading;
-                    child.material.needsUpdate = true;
-                }
-            }
-        });
-    }
-});
-
-startAnimationLoop(renderer, scene, camera, composer, labelRenderer, orbitControls, () => mixer);
 
 const toolbar = document.querySelector('.viewer-toolbar');
 if (toolbar) {
@@ -222,4 +231,5 @@ if (toolbar) {
     });
 }
 
+startAnimationLoop(renderer, scene, camera, composer, labelRenderer, orbitControls, () => mixer);
 console.log("All modules loaded.");

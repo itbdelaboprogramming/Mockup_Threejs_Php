@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: catalog.php?error=unauthorized");
+    exit;
+}
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/sqlite_db.php';
 

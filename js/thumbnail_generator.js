@@ -42,7 +42,7 @@ export async function generateThumbnails(modelPath, width = 300, height = 200) {
           const dataURL = thumbRenderer.domElement.toDataURL("image/png");
           resolve(dataURL);
         } catch (e) {
-          console.error("Error saat rendering thumbnail:", e);
+          console.error("Error while rendering thumbnail:", e);
           reject("Error rendering thumbnail: " + e.message);
         } finally {
           thumbRenderer.dispose();

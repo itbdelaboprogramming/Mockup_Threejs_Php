@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: catalog.php?error=unauthorized");
+    exit;
+}
+
 define('GENERATED_THUMBNAILS_DIR', __DIR__ . '/../assets/thumbnails/generated/');
 define('GENERATED_THUMBNAILS_URL_PATH', '../assets/thumbnails/generated/'); 
 
@@ -51,14 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Save file gambar
         if (file_put_contents($thumbnail_file_path, $image_data)) {
             $thumbnail_db_path = GENERATED_THUMBNAILS_URL_PATH . $thumbnail_filename; 
-            error_log("Thumbnail berhasil disimpan di: " . $thumbnail_file_path);
+            error_log("Thumbnail saved successfully in: " . $thumbnail_file_path);
         } else {
-            error_log("Gagal menyimpan thumbnail di: " . $thumbnail_file_path . ". Cek hak tulis.");
+            error_log("Failed to save thumbnail in: " . $thumbnail_file_path . );
             header("Location: catalog.php?error=filesavefailed");
             exit;
         }
     } else {
-        error_log("Tidak ada data thumbnail yang dikirim untuk model: " . $model_id);
+        error_log("There is no thumbnail to send: " . $model_id);
     }
 
     // $sql = "INSERT INTO model (model_name, model_id, thumbnail_path, model_desc)
